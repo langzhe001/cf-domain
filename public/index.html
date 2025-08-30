@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>域名分发系统</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+</head>
+<body class="container">
+  <h2 class="text-center">域名分发系统</h2>
+
+  <div id="auth">
+    <h3>注册</h3>
+    <input id="reg-username" class="form-control" placeholder="用户名">
+    <input id="reg-password" type="password" class="form-control" placeholder="密码">
+    <button class="btn btn-success" onclick="register()">注册</button>
+
+    <h3>登录</h3>
+    <input id="login-username" class="form-control" placeholder="用户名">
+    <input id="login-password" type="password" class="form-control" placeholder="密码">
+    <button class="btn btn-primary" onclick="login()">登录</button>
+  </div>
+
+  <div id="dashboard" style="display:none">
+    <h3>我的域名</h3>
+    <ul id="domain-list"></ul>
+
+    <h3>添加域名</h3>
+    <input id="subdomain" class="form-control" placeholder="子域名">
+    <input id="target" class="form-control" placeholder="目标地址">
+    <button class="btn btn-info" onclick="addDomain()">添加</button>
+  </div>
+
+  <script>
+    let token = null
+
+    async function register() {
+      const username = document.getElementById('reg-username').value
+      const password = document.getElementById('reg-password').value
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+      alert(await res.text())
+    }
+
+    async function login() {
+      const username = document.getElementById('login-username').value
+      const password = document.getElementById('login-password').value
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+      const data = await res.json()
+      if (data.token) {
+        token = data.token
+        document.getElementById('auth').style.display = 'none'
+        document.getElementById('dashboard').style.display = 'block'
+        loadDomains()
+      } else {
+        alert('登录失败')
+      }
+    }
+
+    async function loadDomains() {
+      const res = await fetch('/api/domains', {
+        headers: { Authorization: 'Bearer ' + token }
+      })
+      const data = await res.json()
+      const list = document.getElementById('domain-list')
+      list.innerHTML = ''
+      data.domains.forEach(d => {
+        const li = document.createElement('li')
+        li.textContent = d.subdomain + ' -> ' + d.target
+        list.appendChild(li)
+      })
+    }
+
+    async function addDomain() {
+      const subdomain = document.getElementById('subdomain').value
+      const target = document.getElementById('target').value
+      const res = await fetch('/api/domains', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ subdomain, target })
+      })
+      await loadDomains()
+    }
+  </script>
+</body>
+</html>

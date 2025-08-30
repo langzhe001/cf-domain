@@ -1,0 +1,13 @@
+name = "cf-subdomain-manager"
+main = "src/index.ts"
+compatibility_date = "2024-08-30"
+
+[vars]
+CLOUDFLARE_API_TOKEN = "changeme"
+CLOUDFLARE_ZONE_ID = "changeme"
+SESSION_SECRET = "supersecret"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "subdomain_users"
+database_id = "changeme"
